@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { GenerateResumeResponseSchema } from "@/lib/schemas";
 import { buildGenerateResumePrompt } from "@/lib/prompts";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { generateAIResponse } from "@/lib/ai-client";
 
-const client = new Anthropic({ timeout: 60000 });
-
-const AI_MODEL = "claude-sonnet-4-20250514";
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
@@ -27,35 +25,16 @@ export async function POST(request: NextRequest) {
 
     const prompt = buildGenerateResumePrompt(jobDescription, resumeText);
 
-    const message = await client.messages.create({
-      model: AI_MODEL,
-      max_tokens: 4096,
-      messages: [{ role: "user", content: prompt }],
-    });
-
-    const content = message.content[0];
-    if (content.type !== "text") {
-      return NextResponse.json({ error: "Unexpected AI response format" }, { status: 500 });
-    }
-
     let parsed;
     try {
-      parsed = JSON.parse(content.text);
+      const text = await generateAIResponse(prompt);
+      parsed = JSON.parse(text);
     } catch {
-      const retryMessage = await client.messages.create({
-        model: AI_MODEL,
-        max_tokens: 4096,
-        messages: [
-          { role: "user", content: prompt },
-          { role: "assistant", content: content.text },
-          { role: "user", content: "Your response was not valid JSON. Please return ONLY valid JSON with no markdown formatting, no code fences, no extra text." },
-        ],
-      });
-      const retryContent = retryMessage.content[0];
-      if (retryContent.type !== "text") {
-        return NextResponse.json({ error: "AI failed to generate valid response" }, { status: 500 });
-      }
-      parsed = JSON.parse(retryContent.text);
+      // Retry once
+      const retryText = await generateAIResponse(
+        prompt + "\n\nIMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no extra text."
+      );
+      parsed = JSON.parse(retryText);
     }
 
     const validated = GenerateResumeResponseSchema.parse(parsed);
@@ -64,9 +43,11 @@ export async function POST(request: NextRequest) {
       headers: { "X-RateLimit-Remaining": remaining.toString() },
     });
   } catch (error) {
+    console.error("Generate resume error:", error);
     if (error instanceof Error && error.name === "ZodError") {
       return NextResponse.json({ error: "AI generated invalid resume structure. Please try again." }, { status: 500 });
     }
-    return NextResponse.json({ error: "Failed to generate resume. Please try again." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: `Failed to generate resume: ${message}` }, { status: 500 });
   }
 }
