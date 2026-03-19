@@ -6,6 +6,33 @@ import { generateAIResponse } from "@/lib/ai-client";
 
 export const maxDuration = 60;
 
+function normalizeResponse(data: Record<string, unknown>) {
+  // Handle case where AI wraps everything differently
+  // Ensure we have the expected top-level structure
+  if (data.resume && !data.atsAnalysis) {
+    // AI might use different key names
+    const atsKey = Object.keys(data).find(k =>
+      k.toLowerCase().includes("ats") || k.toLowerCase().includes("keyword") || k.toLowerCase().includes("analysis")
+    );
+    if (atsKey && atsKey !== "atsAnalysis") {
+      data.atsAnalysis = data[atsKey];
+    } else {
+      data.atsAnalysis = { keywords: [] };
+    }
+  }
+
+  // If AI returns flat resume fields without wrapping in "resume" key
+  if (!data.resume && data.personalInfo) {
+    const { atsAnalysis, ...resumeFields } = data;
+    return {
+      resume: resumeFields,
+      atsAnalysis: atsAnalysis || { keywords: [] },
+    };
+  }
+
+  return data;
+}
+
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
   const { allowed, remaining } = checkRateLimit(ip);
@@ -29,13 +56,17 @@ export async function POST(request: NextRequest) {
     try {
       const text = await generateAIResponse(prompt);
       parsed = JSON.parse(text);
-    } catch {
+    } catch (firstError) {
+      console.error("First attempt failed:", firstError);
       // Retry once
       const retryText = await generateAIResponse(
         prompt + "\n\nIMPORTANT: Return ONLY valid JSON. No markdown, no code fences, no extra text."
       );
       parsed = JSON.parse(retryText);
     }
+
+    // Normalize the AI response to match our expected structure
+    parsed = normalizeResponse(parsed);
 
     const validated = GenerateResumeResponseSchema.parse(parsed);
 

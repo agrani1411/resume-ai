@@ -1,62 +1,62 @@
 import { z } from "zod";
 
 export const PersonalInfoSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-  phone: z.string().min(1),
-  location: z.string().min(1),
-  linkedin: z.string().optional(),
-});
+  name: z.string().default(""),
+  email: z.string().default(""),
+  phone: z.string().default(""),
+  location: z.string().default(""),
+  linkedin: z.string().optional().default(""),
+}).passthrough();
 
 export const ExperienceSchema = z.object({
-  title: z.string().min(1),
-  company: z.string().min(1),
-  location: z.string().min(1),
-  startDate: z.string().min(1),
-  endDate: z.string().min(1),
-  bullets: z.array(z.string().min(1)).min(1),
-});
+  title: z.string().default(""),
+  company: z.string().default(""),
+  location: z.string().default(""),
+  startDate: z.string().default(""),
+  endDate: z.string().default(""),
+  bullets: z.array(z.string()).default([]),
+}).passthrough();
 
 export const ProjectSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  technologies: z.array(z.string()),
-  url: z.string().optional(),
-});
+  name: z.string().default(""),
+  description: z.string().default(""),
+  technologies: z.array(z.string()).default([]),
+  url: z.string().optional().default(""),
+}).passthrough();
 
 export const EducationSchema = z.object({
-  degree: z.string().min(1),
-  institution: z.string().min(1),
-  graduationDate: z.string().min(1),
-  gpa: z.string().optional(),
-});
+  degree: z.string().default(""),
+  institution: z.string().default(""),
+  graduationDate: z.string().default(""),
+  gpa: z.string().optional().default(""),
+}).passthrough();
 
 export const CertificationSchema = z.object({
-  name: z.string().min(1),
-  issuer: z.string().min(1),
-  date: z.string().min(1),
-});
+  name: z.string().default(""),
+  issuer: z.string().default(""),
+  date: z.string().default(""),
+}).passthrough();
 
 export const ResumeSchema = z.object({
   personalInfo: PersonalInfoSchema,
-  summary: z.string().min(1),
-  experience: z.array(ExperienceSchema).min(1),
-  projects: z.array(ProjectSchema).optional(),
-  education: z.array(EducationSchema).min(1),
-  skills: z.array(z.string().min(1)).min(1),
-  certifications: z.array(CertificationSchema).optional(),
-});
+  summary: z.string().default(""),
+  experience: z.array(ExperienceSchema).default([]),
+  projects: z.array(ProjectSchema).optional().default([]),
+  education: z.array(EducationSchema).default([]),
+  skills: z.array(z.string()).default([]),
+  certifications: z.array(CertificationSchema).optional().default([]),
+}).passthrough();
 
 export const ATSKeywordSchema = z.object({
-  term: z.string().min(1),
+  term: z.string(),
   matched: z.boolean(),
-});
+}).passthrough();
 
 export const ATSAnalysisSchema = z.object({
-  keywords: z.array(ATSKeywordSchema),
-});
+  keywords: z.array(ATSKeywordSchema).default([]),
+}).passthrough();
 
 export const GenerateResumeResponseSchema = z.object({
   resume: ResumeSchema,
-  atsAnalysis: ATSAnalysisSchema,
-});
+  atsAnalysis: ATSAnalysisSchema.optional().default({ keywords: [] }),
+}).passthrough();
