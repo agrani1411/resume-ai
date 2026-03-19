@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useResume } from "@/context/ResumeContext";
 import { ResumeEditor } from "@/components/editor/ResumeEditor";
+import { KeywordSidebar } from "@/components/editor/KeywordSidebar";
+import { FinalResumePreview } from "@/components/editor/FinalResumePreview";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
 import { Toast } from "@/components/ui/Toast";
 import { Resume } from "@/types/resume";
@@ -25,6 +27,8 @@ export default function EditorPage() {
   }, [generatedResume, router]);
 
   if (!generatedResume) return null;
+
+  const keywords = atsAnalysis?.keywords || [];
 
   const handleExport = async (format: "pdf" | "docx") => {
     setExporting(true);
@@ -69,12 +73,25 @@ export default function EditorPage() {
         exporting={exporting}
       />
       <div className="flex flex-1 overflow-hidden">
-        <ResumeEditor
-          resume={generatedResume}
-          keywords={atsAnalysis?.keywords || []}
-          onResumeChange={handleResumeChange}
-          jobDescription={jobDescription}
-        />
+        {/* Left: Editable Resume */}
+        <div className="flex-1 min-w-0">
+          <ResumeEditor
+            resume={generatedResume}
+            keywords={keywords}
+            onResumeChange={handleResumeChange}
+            jobDescription={jobDescription}
+          />
+        </div>
+
+        {/* Middle: ATS Analysis Sidebar */}
+        <div className="w-64 flex-shrink-0">
+          <KeywordSidebar keywords={keywords} />
+        </div>
+
+        {/* Right: Final Submission-Ready Resume */}
+        <div className="w-96 flex-shrink-0">
+          <FinalResumePreview resume={generatedResume} />
+        </div>
       </div>
       {error && <Toast message={error} onClose={() => setError(null)} />}
     </div>

@@ -12,7 +12,7 @@ export function KeywordSidebar({ keywords }: KeywordSidebarProps) {
   const matchRate = keywords.length > 0 ? Math.round((matched.length / keywords.length) * 100) : 0;
 
   return (
-    <div className="w-72 border-l border-gray-200 bg-gray-50 p-6 overflow-y-auto">
+    <div className="h-full border-l border-gray-200 bg-gray-50 p-4 overflow-y-auto">
       <h3 className="font-semibold text-gray-900 mb-1">ATS Keywords</h3>
       <p className="text-sm text-gray-500 mb-4">{matchRate}% match ({matched.length}/{keywords.length})</p>
 
