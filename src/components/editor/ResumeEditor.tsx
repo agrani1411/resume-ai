@@ -22,6 +22,7 @@ export function ResumeEditor({ resume, keywords, onResumeChange, jobDescription 
   const initialHTML = highlightKeywords(resumeToHTML(resume), matchedKeywords);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit,
       Highlight.configure({ multicolor: false }),
