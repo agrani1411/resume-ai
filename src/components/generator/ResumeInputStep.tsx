@@ -25,11 +25,9 @@ export function ResumeInputStep({ value, onChange, onBack, onGenerate, isLoading
       setUploadError("File must be under 5MB");
       return;
     }
-    const validTypes = [
-      "application/pdf",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-    if (!validTypes.includes(file.type)) {
+    const isPDF = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    const isDOCX = file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || file.name.toLowerCase().endsWith(".docx");
+    if (!isPDF && !isDOCX) {
       setUploadError("Please upload a PDF or DOCX file");
       return;
     }
