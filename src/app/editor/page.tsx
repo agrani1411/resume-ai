@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useResume } from "@/context/ResumeContext";
 import { ResumeEditor } from "@/components/editor/ResumeEditor";
-import { KeywordSidebar } from "@/components/editor/KeywordSidebar";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
 import { Toast } from "@/components/ui/Toast";
 import { Resume } from "@/types/resume";
@@ -25,7 +24,7 @@ export default function EditorPage() {
     }
   }, [generatedResume, router]);
 
-  if (!generatedResume || !atsAnalysis) return null;
+  if (!generatedResume) return null;
 
   const handleExport = async (format: "pdf" | "docx") => {
     setExporting(true);
@@ -72,11 +71,10 @@ export default function EditorPage() {
       <div className="flex flex-1 overflow-hidden">
         <ResumeEditor
           resume={generatedResume}
-          keywords={atsAnalysis.keywords}
+          keywords={atsAnalysis?.keywords || []}
           onResumeChange={handleResumeChange}
           jobDescription={jobDescription}
         />
-        <KeywordSidebar keywords={atsAnalysis.keywords} />
       </div>
       {error && <Toast message={error} onClose={() => setError(null)} />}
     </div>
