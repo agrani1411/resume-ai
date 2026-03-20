@@ -54,9 +54,11 @@ export const ATSKeywordSchema = z.object({
 
 export const ATSAnalysisSchema = z.object({
   keywords: z.array(ATSKeywordSchema).default([]),
+  originalScore: z.number().min(0).max(100).optional().default(0),
+  optimizedScore: z.number().min(0).max(100).optional().default(0),
 }).passthrough();
 
 export const GenerateResumeResponseSchema = z.object({
   resume: ResumeSchema,
-  atsAnalysis: ATSAnalysisSchema.optional().default({ keywords: [] }),
+  atsAnalysis: ATSAnalysisSchema.optional().default({ keywords: [], originalScore: 0, optimizedScore: 0 }),
 }).passthrough();

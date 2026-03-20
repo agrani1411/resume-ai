@@ -52,6 +52,8 @@ export interface ATSKeyword {
 
 export interface ATSAnalysis {
   keywords: ATSKeyword[];
+  originalScore?: number;
+  optimizedScore?: number;
 }
 
 export interface GenerateResumeResponse {

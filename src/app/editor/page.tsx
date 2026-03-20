@@ -6,6 +6,7 @@ import { useResume } from "@/context/ResumeContext";
 import { ResumeEditor } from "@/components/editor/ResumeEditor";
 import { KeywordSidebar } from "@/components/editor/KeywordSidebar";
 import { FinalResumePreview } from "@/components/editor/FinalResumePreview";
+import { CoverLetterPanel } from "@/components/editor/CoverLetterPanel";
 import { EditorToolbar } from "@/components/editor/EditorToolbar";
 import { Toast } from "@/components/ui/Toast";
 import { Resume } from "@/types/resume";
@@ -15,10 +16,11 @@ export default function EditorPage() {
   const router = useRouter();
   const {
     generatedResume, setGeneratedResume,
-    atsAnalysis, jobDescription, clearAll,
+    atsAnalysis, jobDescription, resumeText, clearAll,
   } = useResume();
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"resume" | "cover-letter">("resume");
 
   useEffect(() => {
     if (!generatedResume) {
@@ -85,12 +87,42 @@ export default function EditorPage() {
 
         {/* Middle: ATS Analysis Sidebar */}
         <div className="w-64 flex-shrink-0">
-          <KeywordSidebar keywords={keywords} />
+          <KeywordSidebar
+            keywords={keywords}
+            originalScore={atsAnalysis?.originalScore || 0}
+            optimizedScore={atsAnalysis?.optimizedScore || 0}
+          />
         </div>
 
-        {/* Right: Final Submission-Ready Resume */}
-        <div className="w-96 flex-shrink-0">
-          <FinalResumePreview resume={generatedResume} />
+        {/* Right: Final Resume / Cover Letter */}
+        <div className="w-96 flex-shrink-0 flex flex-col">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 bg-white">
+            <button
+              onClick={() => setActiveTab("resume")}
+              className={`flex-1 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "resume" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Final Resume
+            </button>
+            <button
+              onClick={() => setActiveTab("cover-letter")}
+              className={`flex-1 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "cover-letter" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Cover Letter
+            </button>
+          </div>
+          {/* Content */}
+          <div className="flex-1 overflow-hidden">
+            {activeTab === "resume" ? (
+              <FinalResumePreview resume={generatedResume} />
+            ) : (
+              <CoverLetterPanel jobDescription={jobDescription} resumeText={resumeText} />
+            )}
+          </div>
         </div>
       </div>
       {error && <Toast message={error} onClose={() => setError(null)} />}
