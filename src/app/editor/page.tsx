@@ -120,7 +120,7 @@ export default function EditorPage() {
             {activeTab === "resume" ? (
               <FinalResumePreview resume={generatedResume} />
             ) : (
-              <CoverLetterPanel jobDescription={jobDescription} resumeText={resumeText} />
+              <CoverLetterPanel jobDescription={jobDescription} resumeText={resumeText} resumeJson={generatedResume as unknown as Record<string, unknown>} />
             )}
           </div>
         </div>

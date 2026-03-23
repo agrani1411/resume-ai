@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/Button";
 interface CoverLetterPanelProps {
   jobDescription: string;
   resumeText: string;
+  resumeJson?: Record<string, unknown> | null;
 }
 
-export function CoverLetterPanel({ jobDescription, resumeText }: CoverLetterPanelProps) {
+export function CoverLetterPanel({ jobDescription, resumeText, resumeJson }: CoverLetterPanelProps) {
   const [coverLetter, setCoverLetter] = useState<string>("");
   const [positionTitle, setPositionTitle] = useState<string>("");
   const [companyName, setCompanyName] = useState<string>("");
@@ -24,7 +25,10 @@ export function CoverLetterPanel({ jobDescription, resumeText }: CoverLetterPane
       const res = await fetch("/api/generate-cover-letter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobDescription, resumeText }),
+        body: JSON.stringify({
+          jobDescription,
+          resumeText: resumeText || (resumeJson ? JSON.stringify(resumeJson) : ""),
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -35,7 +39,8 @@ export function CoverLetterPanel({ jobDescription, resumeText }: CoverLetterPane
       setPositionTitle(data.positionTitle || "");
       setCompanyName(data.companyName || "");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate cover letter");
+      console.error("Cover letter generation error:", err);
+      setError(err instanceof Error ? err.message : "Failed to generate cover letter. Please try again.");
     } finally {
       setGenerating(false);
     }
@@ -56,6 +61,7 @@ export function CoverLetterPanel({ jobDescription, resumeText }: CoverLetterPane
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="text-center">
+            {error && <p className="text-red-600 text-sm mb-3">{error}</p>}
             <p className="text-gray-500 text-sm mb-4">Generate a cover letter matched to this job description</p>
             <Button onClick={handleGenerate} loading={generating}>
               Generate Cover Letter
